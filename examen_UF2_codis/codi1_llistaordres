@@ -1,0 +1,57 @@
+#!/bin/bash
+OPCIO=""
+# habia puesto $OPCIO == 'sortir'. iNCORRECTO, para que entre en el while, la condicion tiene que ser
+# cierta desde el principio y mantenerse cierta para seguir en el loop. Solo cuando se convierta en falsa, sale del loop
+# Pero "" == 'sortir' ya empieza siendo falso desde el principio,
+while [[ $OPCIO != "sortir" ]]; 
+do 
+    echo "-Llista fitxer. Escriu 'llista'"
+    echo "-Instala paquets. Escriu 'instalar'"
+    echo "-Afegeix usuari. Escriu 'usuari'"
+    echo "-Mata procés. Escriu 'mataproces"
+    # cuando escribo sortir, se imprime el texto del Default tambien, pero sale del programa igualmente
+    echo "Escriu 'sortir' pero sortir del programa"
+    read -p "Quina opció esculls? " OPCIO
+    case $OPCIO in
+        'llista')
+            echo "els directoris de l'ubicacio actual són: "
+            ls -l
+            ;;
+        'instalar')
+            read -p "quin paquet vols instalar? " PAQUET
+            sudo apt install -y $PAQUET
+            # habia puesto $? != 1, es incorrecto, ya que el codigo 0 indica que el comando se ha ejecutado con extio 
+            if (( $? == 0 )); then 
+                echo "el paquet $PAQUET s'ha instal·lat correctament"
+            else 
+                echo "no s'ha trobat el paquet"
+            fi
+            ;;
+        'usuari')
+            read -p "com és diu l'usuari que vols crear? " USUARI
+            sudo adduser $USUARI
+            echo "L'usuari $USUARI s'ha creat"
+            echo "El seu directori personal és: /home/$USUARI"
+            ;;
+        'mataproces')
+            read -p "inserta el nom del programa que vols tancar: " PROGRAMA
+            # ps -e | grep "$PROGRAMA" >> /tmp/mataproces.txt INCORRECTE. L'objectiu era que imprimis per pantalla perquè l'usuari vegi la informació, pero si 
+            # redirigeixo la informació a un fitxer i llavors l'usuari ja no veu res per pantalla.
+            # Això ho vaig fer perquè no sabia si l'opció -n funcionava amb l'output per pantalla, pero si funciona, només has de guardar la comanda en una paraula 
+            OUTPUT_TERMINAL=$(sudo ps -e | grep $PROGRAMA)
+            # ps -e | grep no imprimeix res executat desde l'script però si des del terminal. No passa res, ja que l'examen és a mà i la 
+            # sintaxis és correcte
+            if [[ -n $OUTPUT_TERMINAL ]]; then
+                read -p "Inserta el PID del proces que vols matar: " PID
+                kill $PID
+                # aqui podriem afegir un condicional [ $? == 0 ] per comprovar que s'hagi fet el kill, però quina manda
+                echo "Procès tancat correctament"
+            else 
+                echo "no s'ha trobat cap procés. Intenta amb un altre nom"
+            fi
+            ;;
+        *)
+            echo "opció no vàlida. Torna a intentar-no"
+            ;;
+    esac 
+done
